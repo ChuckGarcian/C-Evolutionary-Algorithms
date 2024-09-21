@@ -29,24 +29,23 @@ void es_init(size_t pop_size, size_t num_params, double init_x[2],
   // Initialize Random Generator 
   gsl_rng_env_setup();  
   const gsl_rng_type *T = gsl_rng_default;  
-  
-  gsl_rng_set (es.rng, seed);
-    
-  // Create Initial Population  
-  es.pop_size = pop_size;
-  es.num_params = num_params;
-  es.mu = init_x;
   es.rng = gsl_rng_alloc (T); 
 
-  es.current_population = gsl_matrix_alloc (pop_size, num_params);
-  tensor_set_normal (tensor_view_matrix (es.current_population), es.rng, es.mu, sigma);
+  // Set Helper Variables
+  es.pop_size = pop_size;
+  es.num_params = num_params;
+  es.mu = init_x[0];
   
+  // Create Initial Population    
+  gsl_rng_set (es.rng, seed);
+  es.current_population = gsl_matrix_alloc (pop_size, num_params);
+  tensor_set_normal (tensor_view_matrix (es.current_population), es.rng, es.mu, es.stdev);
 }
 
 /* Frees resources held by ES */
 void es_terminate (void)
 {
-  gsl_rng_free (rng);
+  gsl_rng_free (es.rng);
 }
 
 /* Returns current population. */
