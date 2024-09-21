@@ -11,7 +11,7 @@ gsl_vector *rastrigin_fn(gsl_matrix *x)
 {
   if (x == NULL)
     return NULL;
-
+  
   int len = x->size1;
   int num_cols = x->size2;
   gsl_vector *xcpy = gsl_vector_calloc(len); // TMP vector
@@ -25,20 +25,21 @@ gsl_vector *rastrigin_fn(gsl_matrix *x)
 
   for (int i = 0; i < num_cols; i++)
   {
-    xi = gsl_matrix_subcolumn(x, i, 0, len); // Get column vector
-    gsl_vector_memcpy(xcpy, &xi.vector);     // Copy into over
+    /* Implements: x^2 - 10cos(2pix) */
+    xi = gsl_matrix_subcolumn(x, i, 0, len);    // Get column vector 'x'
+    gsl_vector_memcpy(xcpy, &xi.vector);        // xp <- x (Copy column)
 
-    // x1^2 - 10cos(2pix1)
-    gsl_vector_mul(xcpy, &xi.vector);
-    gsl_vector_scale(&xi.vector, 2 * M_PI);
-    tensor_cos(tensor_view_vector(&xi.vector));
-    gsl_vector_axpby(1, xcpy, -10, &xi.vector);
-    gsl_vector_axpby(1, &xi.vector, 1, sum);
+    gsl_vector_mul(xcpy, &xi.vector);           // xp <- xp*x
+    gsl_vector_scale(&xi.vector, 2 * M_PI);     // x <- 2*pi*x 
+    tensor_cos(tensor_view_vector(&xi.vector)); // x <- cos(x)
+    
+    gsl_vector_axpby(1, xcpy, -10, &xi.vector); // x <- xp - 10x
+    gsl_vector_axpby(1, &xi.vector, 1, sum);    // sum <- sum + x
   }
 
   double cnst = 10 * num_cols;
   gsl_vector_add_constant(sum, cnst);
-
+  
   gsl_vector_free(xcpy);
 
   return sum;
@@ -46,6 +47,7 @@ gsl_vector *rastrigin_fn(gsl_matrix *x)
 
 void print_vector(gsl_vector *vector)
 {
+  printf("Vector: \n");
   printf("[");
   for (int i = 0; i < vector->size; i++)
     printf("%g ", gsl_vector_get(vector, i));
@@ -55,12 +57,15 @@ void print_vector(gsl_vector *vector)
 
 void print_matrix(const gsl_matrix *m)
 {
+  printf ("Matrix: \n");
+  printf ("[\n");
   for (size_t i = 0; i < m->size1; ++i)
   {
     for (size_t j = 0; j < m->size2; ++j)
       printf("%g ", gsl_matrix_get(m, i, j));
     printf("\n");
   }
+  printf ("]\n");
 }
 
 void arange_vector(gsl_vector *vector, int start)
