@@ -18,6 +18,10 @@ default: run
 
 build: $(BIN)/app.x
 
+debug: CFLAGS += -g
+debug: LFLAGS += -g
+debug: build
+
 $(BIN)/app.x: $(OBJS)
 	gcc $^ $(OPT) $(CFLAGS) $(IFLAGS) $(LFLAGS) -o $@
 
