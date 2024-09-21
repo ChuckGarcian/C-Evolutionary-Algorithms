@@ -10,6 +10,10 @@ def rastrigin_fn (x):
     
     return 10*dim + sum
 
+def sphere_fn(x):
+    z = x
+    return np.sum(np.square(z), axis=-1)
+
 if __name__ == "__main__":
     # Extract Data and Calulate Reference Fitness
     population = np.genfromtxt("./population_mat.txt")

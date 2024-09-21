@@ -45,6 +45,35 @@ gsl_vector *rastrigin_fn(gsl_matrix *x)
   return sum;
 }
 
+gsl_vector *sphere_fn (gsl_matrix *x)
+{
+  if (x == NULL)
+    return NULL;
+  
+  int len = x->size1;
+  int num_cols = x->size2;
+  gsl_vector *xcpy = gsl_vector_calloc(len); // TMP vector
+  gsl_vector *sum = gsl_vector_calloc(len);  // Vector returned
+
+  // Allocation Failure
+  if (xcpy == NULL || sum == NULL)
+    return NULL;
+
+  gsl_vector_view xi;
+
+  for (int i = 0; i < num_cols; i++)
+  {
+    /* Implements: Sphere */
+    xi = gsl_matrix_subcolumn(x, i, 0, len);    // Get column vector 'x'
+    gsl_vector_memcpy(xcpy, &xi.vector);        // xp <- x (Copy column)
+    gsl_vector_mul(xcpy, &xi.vector);           // xp <- X**2
+    gsl_vector_axpby(1, xcpy, 1, sum);    // sum <- sum + xP
+  }
+
+  gsl_vector_free(xcpy);
+  return sum;
+}
+
 void print_vector(gsl_vector *vector)
 {
   printf("Vector: \n");
