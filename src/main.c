@@ -9,26 +9,17 @@ void test_rastrigin (void);
 
 int main(void)
 {
-  test_rastrigin ();
-  return 0;
-}
-
-void test_rastrigin (void)
-{
-  int size1, size2;
-  gsl_matrix *mat;
-  gsl_vector *result;
-
-  size1 = 3;
-  size2 = 2;
-
-  /* Allocate and Initialize a Matrix */
-  mat = gsl_matrix_alloc (size1, size2);
-  arange_matrix (mat, 1);
-  printf ("Printing Matrix Prior: \n");
-  print_matrix (mat);
+  printf ("Initializing Now\n");
   
-  result = rastrigin_fn (mat);
-  printf ("Printing 'rastrigin_fn' output On Input of Matrix: \n");
-  print_vector (result);
+  
+  size_t pop_size = 100;    // Population Size
+  size_t num_params = 10;   // Number of Model Parameters
+  double stdev = .10;       // Standard Deviation
+  long seed = 42;           // Seed for Random Functions    
+  double data_init_x[] = {0, 0}; // Initial Guess of Optimal
+  gsl_vector_view init_x = gsl_vector_view_array (data_init_x, 2); 
+  
+  
+  es_init (pop_size, num_params, &init_x.vector, stdev, seed);
+  return 0;
 }

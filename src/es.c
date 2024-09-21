@@ -5,7 +5,10 @@
 
 /* Initializes internal state of simple evolutionary algorithm. */
 void es_init(size_t pop_size, size_t num_params, gsl_vector *init_x,
-             float *stdev, long seed);
+             double stdev, long seed)
+{
+  printf ("Called es_init \n");  
+}
 
 /* Returns current population. */
 gsl_matrix *ask(void);
