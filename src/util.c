@@ -72,7 +72,7 @@ void arange_vector(gsl_vector *vector, int start)
     start = start + 1;
   }
 }
-
+ 
 /*
   Set all elements in matrix 'x' to values from range(start, MSIZE). Simillar to
   numpy.arange().
