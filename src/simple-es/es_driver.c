@@ -27,12 +27,13 @@ int main(void)
     gsl_vector_view stdev = gsl_vector_view_array(stdev_arr, num_params);
 
     es_init(pop_size, num_params, &init_x.vector, &stdev.vector, seed);
-
+    
+    print_vector (&init_x.vector);
     gsl_matrix *best = gsl_matrix_calloc(generations, num_params);
 
     // Train using ES Algorithm
     run_es_algorithm(generations, num_params, best);
-
+    
     // Write and Graph Results
     write_matrix(best, "bin/best_traj.txt");
     gen_bbob_data(bbob_fn);
@@ -66,7 +67,6 @@ void run_es_algorithm(int generations, size_t num_params, gsl_matrix *best)
         printf("),\tfit=%g", gsl_vector_get(fitness_scores, best_idx));
         printf("\n");
 
-        gsl_matrix_free(population);
         gsl_vector_free(fitness_scores);
     }
 }

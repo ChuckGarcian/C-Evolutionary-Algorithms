@@ -1,52 +1,47 @@
-# Compiler and flags
-CC = gcc
-CFLAGS = -Wall -I/usr/local/include -I./include/
-LFLAGS = -L/usr/local/lib -lgsl -lgslcblas -lm -ltensor
+CC := gcc
+CFLAGS := -Wall -O3 -I./include
+LINKER := gcc
+LDFLAGS := -lgsl -lgslcblas -lm -ltensor
+SRC := src
+BIN := bin
+DRIVER_SRCS := $(shell find $(SRC) -name '*_driver.c')
+HELPER_SRCS := $(shell find $(SRC) -name "*.c" -not -name "*_driver.c")
 
-# Directories
-BIN = bin
-SRC = src
-DIRS = $(SRC)
-DIRPATHS = $(foreach DIR, $(DIRS), $(shell find $(DIR) -type d))
+# Convert source file paths to object file paths in the BIN directory
+DRIVER_OBJS := $(patsubst $(SRC)/%.c,$(BIN)/%.o,$(DRIVER_SRCS))
+HELPER_OBJS := $(patsubst $(SRC)/%.c,$(BIN)/%.o,$(HELPER_SRCS))
 
-# Include paths
-IFLAGS = $(DIRPATHS:%=-I%)
 
-# Set up search path for source files
-VPATH = $(DIRPATHS)
+# Ensure the BIN directory exists
+$(BIN):
+	mkdir -p $(BIN)
 
-# Find all .c files
-SRC_FILES = $(shell find $(SRC) -name '*.c')
+# Pattern rule to create object files in the BIN directory, maintaining subdirectory structure
+$(BIN)/%.o: $(SRC)/%.c | $(BIN)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Default target
-all: $(BIN)/app.x
+# Rule to find and compile the driver source file
+compile_%: $(BIN)/%_driver.o $(HELPER_OBJS)
+	$(LINKER) $(BIN)/$*_driver.o $(HELPER_OBJS) -o $(BIN)/driver_gemm.x $(LDFLAGS)
 
-# Compile the main application
-$(BIN)/app.x: $(SRC_FILES)
-	@mkdir -p $(BIN)
-	$(CC) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $@
+$(BIN)/%_driver.o: 
+	@src_file=$(shell find $(SRC) -name "$*_driver.c"); \
+	$(CC) $(CFLAGS) -c $$src_file -o $@
 
-# Run a specific file
-run_%: $(BIN)/%
-	@$<
+show:
+	echo $(HELPER_OBJS)
 
-# Build a specific file
-build_%: %.c $(SRC_FILES)
-	@mkdir -p $(BIN)
-	$(CC) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/$*
+debug_%: CFLAGS = -DDEBUG -g -Wall -O0 -I./include/
+debug_%: $(BIN)/%_driver.o $(HELPER_OBJS)
+	$(LINKER) $(BIN)/$*_driver.o $(HELPER_OBJS) -o $(BIN)/driver_gemm.x $(LDFLAGS)
 
-# Debug a specific file
-debug_%: CFLAGS += -g -O0
-debug_%: %.c $(SRC_FILES)
-	@mkdir -p $(BIN)
-	$(CC) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/$*
+run_%: $(BIN)/%_driver.o $(HELPER_OBJS)
+	$(LINKER) $(BIN)/$*_driver.o $(HELPER_OBJS) -o $(BIN)/driver_gemm.x $(LDFLAGS)
+	$(BIN)/driver_gemm.x  
 
-# Plot (kept from your original Makefile)
-graph:
-	python3 src/plot.py
+run:
+	$(BIN)/driver_gemm.x  
 
-# Clean up
 clean:
 	rm -rf $(BIN)
-
-.PHONY: all clean graph[]

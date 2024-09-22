@@ -63,6 +63,7 @@ void es_tell(gsl_vector *fitness)
 {
   // Most Fit Individual 
   size_t best_parent_idx = gsl_vector_min_index(fitness);
+  
 
   // Set new Mu value 
   for (int i = 0; i < es.num_params; i++)
@@ -70,4 +71,5 @@ void es_tell(gsl_vector *fitness)
     double xii = gsl_matrix_get(es.current_population, best_parent_idx, 0);
     gsl_vector_set(es.mu, i, xii);
   }
+  
 }
