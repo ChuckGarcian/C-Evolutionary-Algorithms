@@ -65,25 +65,29 @@ void optimize_and_write (void)
 {
   printf ("Initializing Now\n");
 
-  size_t pop_size = 10;        // Population Size
+  int generations = 20;        // Num Optimization Time-steps
+  size_t pop_size = 32;        // Population Size
   size_t num_params = 2;       // Number of Model Parameters
-  double stdev = .10;          // Standard Deviation
   long seed = 42;              // Seed for Random Functions    
-  double init_x[2] = {-4, -4}; // Initial Guess of Optimal
-  int generations = 10;        // Num Optimization Time-steps
   
-  es_init (pop_size, num_params, init_x, stdev, seed);
+  double init_x_arr[2] = {-4, -4};  // Initial Guess of Optimal
+  double stdev_arr[2] = {.2, .20}; // Standard Deviation
+  
+  gsl_vector_view init_x = gsl_vector_view_array (init_x_arr, num_params);
+  gsl_vector_view stdev = gsl_vector_view_array (stdev_arr, num_params);
+    
+  es_init (pop_size, num_params, &init_x.vector, &stdev.vector, seed);
 
   gsl_matrix *best = gsl_matrix_calloc(generations, num_params);
 
   for (int gen = 0; gen < generations; gen++)
   {
-    /* Develop Next Generation */
+    // Develop Next Generation
     gsl_matrix *population = es_ask ();
     gsl_vector *fitness_scores = bbob_fn (population);
     es_tell (fitness_scores);
     
-    /* Store Results */
+    // Store Results
     size_t best_idx = gsl_vector_min_index (fitness_scores);
     printf ("Gen=%d,\t(", gen+1);    
     

@@ -1,5 +1,6 @@
 // Description: Utility functions
 
+#include <assert.h>
 #include <gsl/gsl_math.h>
 #include <tensor/tensor.h>
 #include "util.h"
@@ -11,7 +12,7 @@ gsl_vector *rastrigin_fn(gsl_matrix *x)
 {
   if (x == NULL)
     return NULL;
-  
+
   int len = x->size1;
   int num_cols = x->size2;
   gsl_vector *xcpy = gsl_vector_calloc(len); // TMP vector
@@ -26,30 +27,30 @@ gsl_vector *rastrigin_fn(gsl_matrix *x)
   for (int i = 0; i < num_cols; i++)
   {
     /* Implements: x^2 - 10cos(2pix) */
-    xi = gsl_matrix_subcolumn(x, i, 0, len);    // Get column vector 'x'
-    gsl_vector_memcpy(xcpy, &xi.vector);        // xp <- x (Copy column)
+    xi = gsl_matrix_subcolumn(x, i, 0, len); // Get column vector 'x'
+    gsl_vector_memcpy(xcpy, &xi.vector);     // xp <- x (Copy column)
 
     gsl_vector_mul(xcpy, &xi.vector);           // xp <- xp*x
-    gsl_vector_scale(&xi.vector, 2 * M_PI);     // x <- 2*pi*x 
+    gsl_vector_scale(&xi.vector, 2 * M_PI);     // x <- 2*pi*x
     tensor_cos(tensor_view_vector(&xi.vector)); // x <- cos(x)
-    
+
     gsl_vector_axpby(1, xcpy, -10, &xi.vector); // x <- xp - 10x
     gsl_vector_axpby(1, &xi.vector, 1, sum);    // sum <- sum + x
   }
 
   double cnst = 10 * num_cols;
   gsl_vector_add_constant(sum, cnst);
-  
+
   gsl_vector_free(xcpy);
 
   return sum;
 }
 
-gsl_vector *sphere_fn (gsl_matrix *x)
+gsl_vector *sphere_fn(gsl_matrix *x)
 {
   if (x == NULL)
     return NULL;
-  
+
   int len = x->size1;
   int num_cols = x->size2;
   gsl_vector *xcpy = gsl_vector_calloc(len); // TMP vector
@@ -64,10 +65,10 @@ gsl_vector *sphere_fn (gsl_matrix *x)
   for (int i = 0; i < num_cols; i++)
   {
     /* Implements: Sphere */
-    xi = gsl_matrix_subcolumn(x, i, 0, len);    // Get column vector 'x'
-    gsl_vector_memcpy(xcpy, &xi.vector);        // xp <- x (Copy column)
-    gsl_vector_mul(xcpy, &xi.vector);           // xp <- X**2
-    gsl_vector_axpby(1, xcpy, 1, sum);          // sum <- sum + xP
+    xi = gsl_matrix_subcolumn(x, i, 0, len); // Get column vector 'x'
+    gsl_vector_memcpy(xcpy, &xi.vector);     // xp <- x (Copy column)
+    gsl_vector_mul(xcpy, &xi.vector);        // xp <- X**2
+    gsl_vector_axpby(1, xcpy, 1, sum);       // sum <- sum + xP
   }
 
   gsl_vector_free(xcpy);
@@ -86,15 +87,15 @@ void print_vector(gsl_vector *vector)
 
 void print_matrix(const gsl_matrix *m)
 {
-  printf ("Matrix: \n");
-  printf ("[\n");
+  printf("Matrix: \n");
+  printf("[\n");
   for (size_t i = 0; i < m->size1; ++i)
   {
     for (size_t j = 0; j < m->size2; ++j)
       printf("%g ", gsl_matrix_get(m, i, j));
     printf("\n");
   }
-  printf ("]\n");
+  printf("]\n");
 }
 
 void arange_vector(gsl_vector *vector, int start)
@@ -106,7 +107,7 @@ void arange_vector(gsl_vector *vector, int start)
     start = start + 1;
   }
 }
- 
+
 /*
   Set all elements in matrix 'x' to values from range(start, MSIZE). Simillar to
   numpy.arange().
@@ -133,40 +134,62 @@ void arange_matrix(gsl_matrix *x, int start)
 /* Same as Numpy Linspace */
 gsl_vector *linspace(double start, double stop, int num)
 {
- gsl_vector *res = gsl_vector_alloc (num);
- double step = (stop - start) / (double)(num - 1);
+  gsl_vector *res = gsl_vector_alloc(num);
+  double step = (stop - start) / (double)(num - 1);
 
- for (int i = 0; i < num; i++) 
-     gsl_vector_set (res, i, start + ((double)i * step));
- 
+  for (int i = 0; i < num; i++)
+    gsl_vector_set(res, i, start + ((double)i * step));
+
   return res;
 }
 
-void meshgrid(gsl_vector *x, gsl_matrix *x1, gsl_matrix *x2) 
+void meshgrid(gsl_vector *x, gsl_matrix *x1, gsl_matrix *x2)
 {
-    for (int i = 0; i < x->size; i++) {
-        for (int j = 0; j < x->size; j++) {
-            double val_j = gsl_vector_get(x, j);
-            double val_i = gsl_vector_get(x, i);
-            gsl_matrix_set(x1, i, j, val_j); 
-            gsl_matrix_set(x2, i, j, val_i); 
-        }
+  for (int i = 0; i < x->size; i++)
+  {
+    for (int j = 0; j < x->size; j++)
+    {
+      double val_j = gsl_vector_get(x, j);
+      double val_i = gsl_vector_get(x, i);
+      gsl_matrix_set(x1, i, j, val_j);
+      gsl_matrix_set(x2, i, j, val_i);
     }
+  }
 }
 
 /* Writes matrix to file in a format numpy can parse with np.genfromtxt ()*/
-void write_matrix (const gsl_matrix * m, char *filename)
+void write_matrix(const gsl_matrix *m, char *filename)
 {
-  FILE *file = fopen(filename, "w");  
-  
+  FILE *file = fopen(filename, "w");
+
   for (size_t i = 0; i < m->size1; ++i)
   {
-    if (i) fprintf(file, "\n");
-    
+    if (i)
+      fprintf(file, "\n");
+
     for (size_t j = 0; j < m->size2; ++j)
       fprintf(file, "%g ", gsl_matrix_get(m, i, j));
-    
   }
-  
+
   fclose(file);
+}
+/* Sets columns to normal distributed random values.
+ */
+void matrix_set_normal(gsl_matrix *mat, const gsl_rng *rng, gsl_vector *mu, gsl_vector *sigma)
+{
+  size_t length = mat->size1;      // Sub-column Length
+  size_t num_columns = mat->size2; // Number of Columns to set
+  assert(num_columns == mu->size);
+
+  gsl_vector_view tmp;
+
+  // Set the i-th column vector to Gaussian values using the i-th MU value
+  for (int idx = 0; idx < num_columns; idx++)
+  {
+    double mu_val = gsl_vector_get(mu, idx);
+    double stdev_val = gsl_vector_get(sigma, idx);
+
+    tmp = gsl_matrix_subcolumn(mat, idx, 0, length); // Column to set
+    tensor_set_normal(tensor_view_vector(&tmp.vector), rng, mu_val, stdev_val);
+  }
 }
