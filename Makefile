@@ -1,56 +1,52 @@
-# Directory Settings
-BIN := bin
-SRC_DIR := src
-USER := chuckg
-GSL_SRC := home/$(USER)/gsl
+# Compiler and flags
+CC = gcc
+CFLAGS = -Wall -I/usr/local/include -I./include/ -I./src
+LFLAGS = -L/usr/local/lib -lgsl -lgslcblas -lm -ltensor
 
-# Compilation Settings
-IFLAGS := -I/usr/local/include -I./include/
-LFLAGS := -L/usr/local/lib -lgsl -lgslcblas -lm -ltensor
-CFLAGS := -Wall 
-DFLAGS := -g -O0
+# Directories
+BIN = bin
+SRC = src
+DIRS = $(SRC)
+DIRPATHS = $(foreach DIR, $(DIRS), $(shell find $(DIR) -type d))
 
-# Source files
-SRCS := $(wildcard $(SRC_DIR)/*.c)
-OBJS := $(patsubst $(SRC_DIR)/%.c,$(BIN)/%.o,$(SRCS))
+# Include paths
+IFLAGS = $(DIRPATHS:%=-I%)
 
-HELPER_SRCS := $(shell grep -L "int main" $(SRC_DIR)/*.c)
-HELPER_OBJS := $(patsubst $(SRC_DIR)/%.c,$(BIN)/%.o,$(HELPER_SRCS))
+# Set up search path for source files
+VPATH = $(DIRPATHS)
 
-.PHONY: all build clean run_%
+# Find all .c files
+SRC_FILES = $(shell find $(SRC) -name '*.c')
 
-default: run
+# Default target
+all: $(BIN)/app.x
 
-build: $(BIN)/app.x
+# Compile the main application
+$(BIN)/app.x: $(SRC_FILES)
+	@mkdir -p $(BIN)
+	$(CC) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $@
 
-$(BIN)/app.x: $(OBJS)
-	gcc $^ $(OPT) $(CFLAGS) $(IFLAGS) $(LFLAGS) -o $@
+# Run a specific file
+run_%: $(BIN)/%
+	@$<
 
-$(BIN)/%.o: $(SRC_DIR)/%.c
-	mkdir -p $(BIN)
-	gcc $(OPT) $(CFLAGS) $(IFLAGS) -c $< -o $@
+# Build a specific file
+build_%: %.c $(SRC_FILES)
+	@mkdir -p $(BIN)
+	$(CC) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/$*
 
-run: build
-	$(BIN)/app.x
+# Debug a specific file
+debug_%: CFLAGS += -g -O0
+debug_%: %.c $(SRC_FILES)
+	@mkdir -p $(BIN)
+	$(CC) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/$*
 
-run_%: $(SRC_DIR)/%.c $(HELPER_OBJS)
-	mkdir -p $(BIN)
-	gcc $(OPT) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/app.x
-	$(BIN)/app.x
-
-build_%: $(SRC_DIR)/%.c $(HELPER_OBJS)
-	mkdir -p $(BIN)
-	gcc $(OPT) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/app.x
-
-debug_%: CFLAGS += $(DFLAGS)
-
-debug_%: $(SRC_DIR)/%.c $(HELPER_OBJS)
-	mkdir -p $(BIN)
-	gcc $(OPT) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/app.x
-
-# Plot Only
+# Plot (kept from your original Makefile)
 graph:
 	python3 src/plot.py
 
+# Clean up
 clean:
-	$(RM) -rf $(BIN) src/*.txt src/plot.png
+	rm -rf $(BIN)
+
+.PHONY: all clean graph

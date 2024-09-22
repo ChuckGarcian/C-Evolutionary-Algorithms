@@ -3,7 +3,7 @@
 
 #include <string.h>
 #include <tensor/tensor.h>
-#include "es.h"
+#include "simple_es.h"
 #include "util.h"
 
 /* Opaque Struct for Internal ES State */
