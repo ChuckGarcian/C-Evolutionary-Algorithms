@@ -6,8 +6,18 @@
 #include "es.h"
 #include "util.h"
 
+gsl_vector *(*bbob_fn) (gsl_matrix *x);
+
+gsl_matrix* vector_to_matrix(const gsl_vector *v);
+
+static void optimize_and_write (void);
+static void generate_graph (void);
+
+
 int main (void)
 {
+  bbob_fn = &sphere_fn; // Function being Plotted
+  
   int x_min = -5;
   int x_max = 5;
   int num_points_per_dim = 100;
@@ -31,7 +41,7 @@ int main (void)
     gsl_matrix_set_col (tmp, 0, &x2_row.vector);
     gsl_matrix_set_col (tmp, 1, &x1_row.vector);
     
-    res_row = rastrigin_fn (tmp);
+    res_row = bbob_fn (tmp);
     gsl_matrix_set_row (y_res, i, res_row);
     gsl_vector_free (res_row);
     
@@ -41,16 +51,75 @@ int main (void)
   write_matrix (x1, "src/x1.txt");
   write_matrix (x2, "src/x2.txt");  
   write_matrix (y_res, "src/y_res.txt");
+  optimize_and_write ();
   
   /* Plot the Graphed Data */
+  generate_graph ();
+  
+  printf ("Done -- Graph Saved\n");
+  return 0;
+}
+
+/* Run ES Algorithm and Write Optimization Results */
+void optimize_and_write (void)
+{
+  printf ("Initializing Now\n");
+
+  size_t pop_size = 10;        // Population Size
+  size_t num_params = 2;       // Number of Model Parameters
+  double stdev = .10;          // Standard Deviation
+  long seed = 42;              // Seed for Random Functions    
+  double init_x[2] = {-4, -4}; // Initial Guess of Optimal
+  int generations = 10;        // Num Optimization Time-steps
+  
+  es_init (pop_size, num_params, init_x, stdev, seed);
+
+  gsl_matrix *best = gsl_matrix_calloc(generations, num_params);
+
+  for (int gen = 0; gen < generations; gen++)
+  {
+    /* Develop Next Generation */
+    gsl_matrix *population = es_ask ();
+    gsl_vector *fitness_scores = bbob_fn (population);
+    es_tell (fitness_scores);
+    
+    /* Store Results */
+    size_t best_idx = gsl_vector_min_index (fitness_scores);
+    printf ("Gen=%d,\t(", gen+1);    
+    
+    // Store each parameter of the best individual
+    for (int i = 0; i < num_params; i++) 
+    {      
+      double param_i = gsl_matrix_get (population, best_idx, i);
+      printf ("x%d=%g,", i, param_i);
+      gsl_matrix_set (best, gen, i, param_i);
+    }
+      printf ("),\tfit=%g", gsl_vector_get (fitness_scores, best_idx));
+    printf ("\n");
+      
+  }
+  
+  printf ("Done\n");
+  write_matrix (best, "src/best_traj.txt");  
+}
+
+gsl_matrix* vector_to_matrix(const gsl_vector *v) {
+    printf ("Size: %ld\n", v->size);
+    gsl_matrix *m = gsl_matrix_alloc(v->size, 1);
+    for (size_t i = 0; i < v->size; i++) {
+        printf ("idx: %ld\n", i);
+        gsl_matrix_set(m, i, 0, gsl_vector_get(v, i));
+    }
+    return m;
+}
+
+/* Plot Written Data */
+void generate_graph (void)
+{
   int ret = system("python3 src/plot.py");
   if (ret == -1)
   {
     fprintf(stderr, "Error starting Python script\n");
-    return 1;
   }
 
-  printf ("Done -- Graph Saved\n");
-  
-  return 0;
 }

@@ -6,6 +6,7 @@ warnings.filterwarnings('ignore')
 
 def plot_fn(name, traj=None,
             x_min=-5, x_max=5, num_levels=15, num_points_per_dim=100):    
+    traj = np.genfromtxt ("src/best_traj.txt")
     x1 = np.genfromtxt ("src/x1.txt")
     x2 = np.genfromtxt ("src/x2.txt")
     y = np.genfromtxt ("src/y_res.txt")
