@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -I/usr/local/include -I./include/ -I./src
+CFLAGS = -Wall -I/usr/local/include -I./include/
 LFLAGS = -L/usr/local/lib -lgsl -lgslcblas -lm -ltensor
 
 # Directories
@@ -49,4 +49,4 @@ graph:
 clean:
 	rm -rf $(BIN)
 
-.PHONY: all clean graph
+.PHONY: all clean graph[]
