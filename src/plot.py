@@ -6,10 +6,11 @@ warnings.filterwarnings('ignore')
 
 def plot_fn(name, traj=None,
             x_min=-5, x_max=5, num_levels=15, num_points_per_dim=100):    
-    traj = np.genfromtxt ("src/best_traj.txt")
-    x1 = np.genfromtxt ("src/x1.txt")
-    x2 = np.genfromtxt ("src/x2.txt")
-    y = np.genfromtxt ("src/y_res.txt")
+    data_dir = "bin"
+    traj = np.genfromtxt ("{}/best_traj.txt".format(data_dir))
+    x1 = np.genfromtxt ("{}/x1.txt".format(data_dir))
+    x2 = np.genfromtxt ("{}/x2.txt".format(data_dir))
+    y = np.genfromtxt ("{}/y_res.txt".format(data_dir))
 
     fig = plt.figure(figsize=plt.figaspect(.5))
 
@@ -41,6 +42,6 @@ def plot_fn(name, traj=None,
     ax.set_title(title)
 
     plt.tight_layout()
-    plt.savefig ("src/plot.png")
+    plt.savefig ("{}/plot.png".format(data_dir))
 
 plot_fn ("rastrigin")    

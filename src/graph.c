@@ -48,9 +48,9 @@ int main (void)
   }
   
   /* Save Graphing Data */  
-  write_matrix (x1, "src/x1.txt");
-  write_matrix (x2, "src/x2.txt");  
-  write_matrix (y_res, "src/y_res.txt");
+  write_matrix (x1, "bin/x1.txt");
+  write_matrix (x2, "bin/x2.txt");  
+  write_matrix (y_res, "bin/y_res.txt");
   optimize_and_write ();
   
   /* Plot the Graphed Data */
@@ -100,7 +100,7 @@ void optimize_and_write (void)
   }
   
   printf ("Done\n");
-  write_matrix (best, "src/best_traj.txt");  
+  write_matrix (best, "bin/best_traj.txt");  
 }
 
 gsl_matrix* vector_to_matrix(const gsl_vector *v) {

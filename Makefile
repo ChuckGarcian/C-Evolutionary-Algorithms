@@ -5,7 +5,7 @@ USER := chuckg
 GSL_SRC := home/$(USER)/gsl
 
 # Compilation Settings
-IFLAGS := -I/usr/local/include
+IFLAGS := -I/usr/local/include -I./include/
 LFLAGS := -L/usr/local/lib -lgsl -lgslcblas -lm -ltensor
 CFLAGS := -Wall 
 DFLAGS := -g -O0
