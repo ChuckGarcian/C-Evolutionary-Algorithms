@@ -8,6 +8,7 @@ GSL_SRC := home/$(USER)/gsl
 IFLAGS := -I/usr/local/include
 LFLAGS := -L/usr/local/lib -lgsl -lgslcblas -lm -ltensor
 CFLAGS := -Wall 
+DFLAGS := -g -O0
 
 # Source files
 SRCS := $(wildcard $(SRC_DIR)/*.c)
@@ -22,10 +23,6 @@ default: run
 
 build: $(BIN)/app.x
 
-debug: CFLAGS += -g
-debug: LFLAGS += -g
-debug: build
-
 $(BIN)/app.x: $(OBJS)
 	gcc $^ $(OPT) $(CFLAGS) $(IFLAGS) $(LFLAGS) -o $@
 
@@ -38,8 +35,22 @@ run: build
 
 run_%: $(SRC_DIR)/%.c $(HELPER_OBJS)
 	mkdir -p $(BIN)
-	gcc $(OPT) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/$*.x
-	$(BIN)/$*.x
-	
+	gcc $(OPT) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/app.x
+	$(BIN)/app.x
+
+build_%: $(SRC_DIR)/%.c $(HELPER_OBJS)
+	mkdir -p $(BIN)
+	gcc $(OPT) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/app.x
+
+debug_%: CFLAGS += $(DFLAGS)
+
+debug_%: $(SRC_DIR)/%.c $(HELPER_OBJS)
+	mkdir -p $(BIN)
+	gcc $(OPT) $(CFLAGS) $(IFLAGS) $^ $(LFLAGS) -o $(BIN)/app.x
+
+# Plot Only
+graph:
+	python3 src/plot.py
+
 clean:
 	$(RM) -rf $(BIN) src/*.txt src/plot.png
